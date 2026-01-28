@@ -21,3 +21,8 @@ tsconfig.tsbuildinfo
 
 # vercel cli files
 .vercel
+
+# temporary files
+tmp/
+git_status.txt
+status.utf8.txt

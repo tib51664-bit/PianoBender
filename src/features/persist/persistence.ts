@@ -1,4 +1,4 @@
-import type { Song, SongConfig, SongMetadata } from '@/types'
+import type { ExtendedSongMetadata, PlaybackHistoryEntry, Song, SongConfig, SongMetadata } from '@/types'
 import * as idb from 'idb-keyval'
 import * as jotai from 'jotai'
 import { parseMidi } from '../parsers'
@@ -25,6 +25,12 @@ export const requiresPermissionAtom = jotai.atom<boolean>(false)
 export const localSongsAtom = jotai.atom<Map<string, SongMetadata[]>>(new Map())
 export const isInitializedAtom = jotai.atom<boolean>(false)
 
+export const extendedMetadataAtom = jotai.atom<Record<string, ExtendedSongMetadata>>({})
+export const playbackHistoryAtom = jotai.atom<PlaybackHistoryEntry[]>([])
+export const uploadedSongsAtom = jotai.atom<SongMetadata[]>([])
+
+const uploadedFilesMap = new Map<string, File>()
+
 const store = jotai.getDefaultStore()
 
 export async function initialize() {
@@ -40,6 +46,14 @@ export async function initialize() {
       return
     }
     await scanFolders()
+
+    const extendedMeta: Record<string, ExtendedSongMetadata> = (await idb.get(storageKeys.SONG_EXTENDED_METADATA)) ?? {}
+    store.set(extendedMetadataAtom, extendedMeta)
+
+    const history: PlaybackHistoryEntry[] = (await idb.get(storageKeys.PLAYBACK_HISTORY)) ?? []
+    store.set(playbackHistoryAtom, history)
+
+
   } catch (e) {
     console.error('persistence init failed', e)
   } finally {
@@ -210,4 +224,56 @@ export function getPersistedSongSettings(file: string) {
 
 export function setPersistedSongSettings(file: string, config: SongConfig) {
   return Storage.set(`${file}/settings`, config)
+}
+
+export async function updateExtendedMetadata(songId: string, metadata: Partial<ExtendedSongMetadata>) {
+  const current = store.get(extendedMetadataAtom)
+  const updated = {
+    ...current,
+    [songId]: {
+      ...current[songId],
+      ...metadata,
+    },
+  }
+  store.set(extendedMetadataAtom, updated)
+  await idb.set(storageKeys.SONG_EXTENDED_METADATA, updated)
+}
+
+export async function addToHistory(songId: string) {
+  const history = store.get(playbackHistoryAtom)
+  const newEntry: PlaybackHistoryEntry = { songId, timestamp: Date.now() }
+  const updatedHistory = [newEntry, ...history]
+  store.set(playbackHistoryAtom, updatedHistory)
+  await idb.set(storageKeys.PLAYBACK_HISTORY, updatedHistory)
+
+  // Also update playCount and lastPlayed in extended metadata
+  const currentMeta = store.get(extendedMetadataAtom)[songId] || {}
+  await updateExtendedMetadata(songId, {
+    playCount: (currentMeta.playCount || 0) + 1,
+    lastPlayed: newEntry.timestamp,
+  })
+}
+
+export async function uploadMidiFile(file: File) {
+  const buffer = await file.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  const duration = parseMidi(bytes).duration
+
+  const id = `upload-${Date.now()}-${file.name}`
+  const songMetadata: SongMetadata = {
+    id,
+    title: file.name.replace(/\.midi?$/i, ''),
+    file: id,
+    source: 'uploaded',
+    difficulty: 0,
+    duration,
+  }
+
+  uploadedFilesMap.set(id, file)
+  const current = store.get(uploadedSongsAtom)
+  store.set(uploadedSongsAtom, [...current, songMetadata])
+}
+
+export function getUploadedFile(id: string): File | undefined {
+  return uploadedFilesMap.get(id)
 }

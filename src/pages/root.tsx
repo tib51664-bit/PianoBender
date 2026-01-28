@@ -9,15 +9,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Ensure relative URLs resolve from the site root */}
+        <base href="/" />
 
-        <title>Sightread</title>
+        <title>PianoBender</title>
         <meta name="author" content="Jake Fried" />
-        <meta name="description" content="app for learning piano" />
+        <meta name="description" content="An interactive piano learning application" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="Sightread" />
-        <meta property="og:site_name" content="Sightread" />
-        <meta property="og:description" content="app for learning piano" />
+        <meta property="og:title" content="PianoBender" />
+        <meta property="og:site_name" content="PianoBender" />
+        <meta property="og:description" content="An interactive piano learning application" />
         <meta property="og:image" content="/images/mode_falling_notes_screenshot.png" />
         <meta
           property="og:image:alt"
@@ -36,8 +38,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
 
         {/* Favicons */}
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
+        {/* Use the PNG logo as the favicon. Adding sizes and shortcut icon for broader support */}
+        <link rel="icon" href="public/images/Logo.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="public/images/Logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="public/images/Logo.png" type="image/png" />
+        <link rel="manifest" href="public/manifest.json" />
 
         {/* Global Site Tag (gtag.js) - Google Analytics */}
         <script defer src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />

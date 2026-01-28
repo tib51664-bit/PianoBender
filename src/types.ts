@@ -11,7 +11,7 @@ export type DifficultyLabel =
   // "-" stands for Unknown
   | '-'
 
-export type SongSource = 'local' | 'builtin' | 'generated' | 'base64'
+export type SongSource = 'local' | 'builtin' | 'generated' | 'base64' | 'uploaded'
 export type SongMetadata = {
   id: string
   file: string
@@ -24,6 +24,19 @@ export type SongMetadata = {
   handle?: FileSystemFileHandle
   lastModified?: number
   fileSize?: number
+}
+
+export type ExtendedSongMetadata = {
+  score?: number // 0-5 stars
+  genre?: string
+  difficultyCustom?: number
+  playCount?: number
+  lastPlayed?: number
+}
+
+export type PlaybackHistoryEntry = {
+  songId: string
+  timestamp: number
 }
 
 export interface Size {

@@ -1,128 +1,101 @@
-import { AppBar, MarketingFooter, Sizer } from '@/components'
-import React from 'react'
+import { recentSongsAtom } from '@/features/data/library'
+import { extendedMetadataAtom } from '@/features/persist'
+import { Music, Clock, Play, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { FeaturedSongsPreview } from './FeaturedSongsPreview'
+import { clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import { useAtomValue } from 'jotai'
+import { useMemo, useState } from 'react'
+import Filters, { SortOption } from '../songs/components/Filters'
+import { SongMetadata } from '@/types'
+import { SongPreviewModal } from '@/features/SongPreview'
+import { formatTime, getKey } from '@/utils'
+
+function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs))
+}
 
 export default function Home() {
+  const recentSongs = useAtomValue(recentSongsAtom)
+  const extendedMeta = useAtomValue(extendedMetadataAtom)
+  const [previewSong, setPreviewSong] = useState<SongMetadata | null>(null)
+
+  const sortedRecent = useMemo(() => {
+    return [...recentSongs].sort((a, b) => {
+      const extA = extendedMeta[getKey(a.id, a.source)] || {}
+      const extB = extendedMeta[getKey(b.id, b.source)] || {}
+      return (extB.lastPlayed || 0) - (extA.lastPlayed || 0)
+    }).slice(0, 8)
+  }, [recentSongs, extendedMeta])
+
   return (
-    <>
-      <div className="bg-background relative flex min-h-screen w-full flex-col text-white">
-        <AppBar />
-        <div className="bg-violet-600">
-          <div className="mx-auto w-full max-w-(--breakpoint-lg) px-6 py-10">
-            <div className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr]">
-              <div className="flex flex-col gap-4 text-center md:text-left">
-                <h1 className="text-responsive-xxl font-bold">Your Piano Journey Begins Here</h1>
-                <h3 className="text-responsive-xl text-white/85">
-                  Plug in your keyboard and learn, right in your browser
-                </h3>
-                <div className="flex flex-wrap justify-center gap-3 md:justify-start">
-                  <Link to={'/songs'}>
-                    <Button className="bg-white text-gray-900 shadow-sm hover:bg-violet-100 active:bg-violet-200 active:shadow-inner">
-                      Learn a song
-                    </Button>
-                  </Link>
-                  <Link to={'/freeplay'}>
-                    <Button className="border border-white/50 text-white hover:bg-white/10">
-                      Free play
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-              <div className="flex justify-center md:justify-end">
-                <div className="w-full rounded-2xl shadow-[0_18px_40px_rgba(17,24,39,0.35)]">
-                  <FeaturedSongsPreview className="w-full" />
-                </div>
-              </div>
-            </div>
+    <div className="h-full w-full overflow-y-auto">
+      <div className="max-w-7xl mx-auto p-8 space-y-12 animate-in fade-in duration-700">
+        {/* Recently Played Section */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <Clock className="w-6 h-6 text-indigo-400" />
+              Recently Played
+            </h2>
+            <Link to="/play-song" className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold flex items-center gap-1 group">
+              View Full Library
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
-        </div>
-        <div className="bg-background">
-          <div className="mx-auto w-full max-w-(--breakpoint-lg) px-6 py-16">
-            <h3 className="text-lg font-semibold text-gray-900">Why Sightread</h3>
-            <p className="mt-2 text-sm text-gray-600">A few reasons to give it a try.</p>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <div
-                className="glint-card rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                onMouseMove={(event) => {
-                  const rect = event.currentTarget.getBoundingClientRect()
-                  const x = event.clientX - rect.left
-                  const y = event.clientY - rect.top
-                  event.currentTarget.style.setProperty('--glint-x', `${x}px`)
-                  event.currentTarget.style.setProperty('--glint-y', `${y}px`)
-                }}
-              >
-                <h3 className="text-base font-semibold text-gray-900">Your Own Music</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Works with any MIDI file. We'll automatically detect which track is for which
-                  hand.
-                </p>
+
+          <div className="space-y-2">
+            {sortedRecent.map((song) => {
+              const lastPlayed = extendedMeta[getKey(song.id, song.source)]?.lastPlayed
+              const lastPlayedLabel = lastPlayed ? new Date(lastPlayed).toLocaleDateString() : 'Never'
+
+              return (
+                <div
+                  key={song.id}
+                  onClick={() => setPreviewSong(song)}
+                  className="group flex items-center justify-between p-4 rounded-2xl bg-[#1a1a1e] border border-white/5 hover:border-white/10 hover:bg-white/2 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-indigo-500/10 transition-colors">
+                      <Music className="w-6 h-6 text-slate-400 group-hover:text-indigo-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-white truncate group-hover:text-indigo-300 transition-colors">
+                        {song.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium">Played on {lastPlayedLabel}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    <span className="hidden sm:block text-sm text-slate-600 font-bold">{formatTime(song.duration)}</span>
+                    <button className="p-3 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+                      <Play className="w-4 h-4 fill-current" />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+
+            {sortedRecent.length === 0 && (
+              <div className="py-20 flex flex-col items-center justify-center text-slate-500 space-y-4">
+                <Music className="w-16 h-16 opacity-20" />
+                <p className="text-lg">No songs played yet.</p>
+                <Link to="/play-song" className="px-6 py-2 rounded-xl bg-indigo-500 text-white font-bold hover:bg-indigo-600 transition-colors">
+                  Start Playing
+                </Link>
               </div>
-              <div
-                className="glint-card rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                onMouseMove={(event) => {
-                  const rect = event.currentTarget.getBoundingClientRect()
-                  const x = event.clientX - rect.left
-                  const y = event.clientY - rect.top
-                  event.currentTarget.style.setProperty('--glint-x', `${x}px`)
-                  event.currentTarget.style.setProperty('--glint-y', `${y}px`)
-                }}
-              >
-                <h3 className="text-base font-semibold text-gray-900">Learn at Your Own Pace</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Tempo controls and Wait Mode let you slow down and focus on accuracy.
-                </p>
-              </div>
-              <div
-                className="glint-card rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                onMouseMove={(event) => {
-                  const rect = event.currentTarget.getBoundingClientRect()
-                  const x = event.clientX - rect.left
-                  const y = event.clientY - rect.top
-                  event.currentTarget.style.setProperty('--glint-x', `${x}px`)
-                  event.currentTarget.style.setProperty('--glint-y', `${y}px`)
-                }}
-              >
-                <h3 className="text-base font-semibold text-gray-900">Multiple Modes</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Falling Notes or Sheet Hero. Switch views to match how you learn.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-        <div className="mt-auto">
-          <MarketingFooter />
-        </div>
+        </section>
+
+        <SongPreviewModal
+          show={!!previewSong}
+          songMeta={previewSong || undefined}
+          onClose={() => setPreviewSong(null)}
+        />
       </div>
-    </>
+    </div>
   )
 }
 
-function Button({
-  children,
-  style,
-  className,
-}: {
-  children?: React.ReactNode
-  style?: React.CSSProperties
-  className?: string
-}) {
-  return (
-    <button
-      className={className}
-      style={{
-        transition: 'background-color 150ms',
-        cursor: 'pointer',
-        fontSize: 'clamp(0.875rem, 0.875rem + 0.35vw, 1.05rem)',
-        padding: '8px 16px',
-        borderRadius: 10,
-        fontWeight: 500,
-        minWidth: 'max-content',
-        ...style,
-      }}
-    >
-      {children}
-    </button>
-  )
-}

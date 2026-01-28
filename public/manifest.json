@@ -1,7 +1,7 @@
 {
-  "name": "Sightread",
-  "short_name": "sightread",
-  "description": "app for learning piano",
+  "name": "PianoBender",
+  "short_name": "PianoBender",
+  "description": "An interactive piano learning application",
   "start_url": "/",
   "display": "standalone",
   "icons": [

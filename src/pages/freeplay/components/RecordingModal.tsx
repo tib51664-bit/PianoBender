@@ -6,7 +6,7 @@ import { SongPreview } from '@/features/SongPreview/SongPreview'
 import { loadInstrument, soundfonts } from '@/features/synth/loadInstrument'
 import { InstrumentName } from '@/features/synth/types'
 import { useEventListener, usePlayerState } from '@/hooks'
-import { Download, Loader, Share } from '@/icons'
+import { Download, Loader } from '@/icons'
 import { SongSource } from '@/types'
 import { base64ToBytes, formatInstrumentName } from '@/utils'
 import { useAtomValue } from 'jotai'
@@ -14,10 +14,7 @@ import { Pause, Play } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from 'react-aria-components'
 
-// A function to copy a string to the clipboard
-function copyToClipboard(text: string) {
-  navigator.clipboard?.writeText(text)
-}
+
 
 function downloadBase64Midi(midiBase64: string) {
   const midiBytes: Uint8Array = base64ToBytes(midiBase64)
@@ -41,7 +38,7 @@ type ModalProps = {
 }
 export default function SongPreviewModal({
   show = true,
-  onClose = () => {},
+  onClose = () => { },
   songMeta = undefined,
   instrument,
 }: ModalProps) {
@@ -171,26 +168,13 @@ export default function SongPreviewModal({
             <div className="flex w-full gap-3">
               <Button
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-violet-300 bg-white text-sm font-semibold text-violet-700 transition hover:bg-violet-50 active:bg-violet-100"
-                onPress={() => {
-                  const origin = window.location.origin
-                  const url = `${origin}/play/?source=base64&id=${encodeURIComponent(id)}`
-                  copyToClipboard(url)
-                }}
-              >
-                <Share />
-                Copy Share URL
-              </Button>
-              <Button
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-semibold text-white shadow-md transition hover:bg-violet-500 active:bg-violet-700"
                 onPress={() => downloadBase64Midi(id)}
               >
                 <Download />
                 Download MIDI
               </Button>
-            </div>
-            <div className="mt-3 flex w-full">
               <Button
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-900 shadow-sm transition hover:bg-gray-50 active:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 text-sm font-semibold text-white shadow-md transition hover:bg-violet-500 active:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
                 isDisabled={
                   !instrument || isMp3Rendering || isSoundfontLoading || !isSoundfontReady
                 }
@@ -214,9 +198,9 @@ export default function SongPreviewModal({
                   <Download />
                 )}
                 {isSoundfontLoading
-                  ? 'Loading Soundfont'
+                  ? 'Loading...'
                   : isMp3Rendering
-                    ? 'Rendering MP3'
+                    ? 'Rendering...'
                     : 'Download MP3'}
               </Button>
             </div>

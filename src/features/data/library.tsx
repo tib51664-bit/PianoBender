@@ -2,7 +2,7 @@ import builtinSongManifest from '@/manifest.json'
 import { SongMetadata, SongSource } from '@/types'
 import { getKey } from '@/utils'
 import { atom, useAtomValue } from 'jotai'
-import { localSongsAtom } from '../persist'
+import { localSongsAtom, playbackHistoryAtom, uploadedSongsAtom } from '../persist'
 
 const builtinMetadata: Array<[string, SongMetadata]> = Object.values(builtinSongManifest).map(
   (metadata) => {
@@ -17,15 +17,33 @@ const storageMetadataAtom = atom((get) => {
   return songs.map((x) => [getKey(x.id, x.source), x]) as [string, SongMetadata][]
 })
 
+const uploadedMetadataAtom = atom((get) => {
+  const songs = get(uploadedSongsAtom)
+  return songs.map((x) => [getKey(x.id, x.source), x]) as [string, SongMetadata][]
+})
+
 export const songManifestAtom = atom<Map<string, SongMetadata>>((get) => {
   const builtinMetadata = get(builtinMetadataAtom)
   const storageMetadata = get(storageMetadataAtom)
-  return new Map([...builtinMetadata, ...storageMetadata])
+  const uploadedMetadata = get(uploadedMetadataAtom)
+  return new Map([...builtinMetadata, ...storageMetadata, ...uploadedMetadata])
 })
 
 const songManifestAsListAtom = atom<Array<SongMetadata>>((get) => {
   const songManifest = get(songManifestAtom)
   return Array.from(songManifest.values())
+})
+
+export const recentSongsAtom = atom<Array<SongMetadata>>((get) => {
+  const history = get(playbackHistoryAtom)
+  const manifest = get(songManifestAtom)
+
+  // Get unique song IDs from history in order
+  const uniqueIds = Array.from(new Set(history.map(h => h.songId)))
+
+  return uniqueIds
+    .map(id => manifest.get(id))
+    .filter((s): s is SongMetadata => !!s)
 })
 
 export function useSongManifest(): SongMetadata[] {

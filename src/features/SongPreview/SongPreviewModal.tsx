@@ -1,12 +1,14 @@
 import { Modal } from '@/components'
 import { useEventListener, usePlayerState } from '@/hooks'
-import { SongMetadata } from '@/types'
+import { SongMetadata, SongSource } from '@/types'
 import { useAtomValue } from 'jotai'
 import { Pause, Play } from 'lucide-react'
 import { Button, Heading, Text } from 'react-aria-components'
 import { createSearchParams, useNavigate } from 'react-router'
 import { SongScrubBar, useSongScrubTimes } from '../controls'
 import { usePlayer } from '../player'
+import { addToHistory } from '../persist'
+import { getKey } from '@/utils'
 import PreviewIcon from './PreviewIcon'
 import { SongPreview } from './SongPreview'
 
@@ -17,7 +19,7 @@ type ModalProps = {
 }
 export default function SongPreviewModal({
   show = true,
-  onClose = () => {},
+  onClose = () => { },
   songMeta = undefined,
 }: ModalProps) {
   const { title, id, source } = songMeta ?? {}
@@ -39,7 +41,8 @@ export default function SongPreviewModal({
     }
     if (event.key === 'Enter') {
       event.preventDefault()
-      if (playSongSearch) {
+      if (playSongSearch && id) {
+        addToHistory(getKey(id as string, source as SongSource))
         navigate({ pathname: '/play', search: `?${playSongSearch}` })
       }
     }
@@ -135,7 +138,10 @@ export default function SongPreviewModal({
           <div className="mt-auto border-t border-gray-100 px-6 py-6">
             <Button
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-4 text-lg font-semibold text-white shadow-lg transition hover:bg-violet-500 active:bg-violet-700"
-              onPress={() => navigate({ pathname: '/play', search: `?${playSongSearch}` })}
+              onPress={() => {
+                addToHistory(getKey(id!, source!))
+                navigate({ pathname: '/play', search: `?${playSongSearch}` })
+              }}
             >
               Play Now
             </Button>
