@@ -64,7 +64,8 @@
     "fmt": "prettier --write '**/*.{ts,tsx}'",
     "render": "bun scripts/render.ts",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "start": "react-router-serve ./build/server/index.js"
   },
   "browserslist": {
     "production": [
