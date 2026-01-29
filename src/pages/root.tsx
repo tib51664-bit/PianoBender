@@ -1,4 +1,3 @@
-import { GA_TRACKING_ID } from '@/features/analytics'
 import styles from '@/styles/global.css?inline'
 import { Outlet, Scripts, ScrollRestoration } from 'react-router'
 import { Providers } from './providers'
@@ -43,20 +42,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="shortcut icon" href="public/images/Logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="public/images/Logo.png" type="image/png" />
         <link rel="manifest" href="public/manifest.json" />
-
-        {/* Global Site Tag (gtag.js) - Google Analytics */}
-        <script defer src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '${GA_TRACKING_ID}', {
-      page_path: window.location.pathname,
-    });`,
-          }}
-        />
 
         {/* Manually inserted styles */}
         <style dangerouslySetInnerHTML={{ __html: styles }} />
