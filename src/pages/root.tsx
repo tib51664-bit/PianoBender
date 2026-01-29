@@ -38,10 +38,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Favicons */}
         {/* Use the PNG logo as the favicon. Adding sizes and shortcut icon for broader support */}
-        <link rel="icon" href="public/images/Logo.png" type="image/png" sizes="any" />
-        <link rel="shortcut icon" href="public/images/Logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="public/images/Logo.png" type="image/png" />
-        <link rel="manifest" href="public/manifest.json" />
+        <link rel="icon" href="/images/Logo.png" type="image/png" sizes="any" />
+        <link rel="shortcut icon" href="/images/Logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/images/Logo.png" type="image/png" />
+        <link rel="manifest" href="/manifest.json" />
 
         {/* Manually inserted styles */}
         <style dangerouslySetInnerHTML={{ __html: styles }} />
